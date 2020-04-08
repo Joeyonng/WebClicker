@@ -25,7 +25,7 @@ import FormControl from "@material-ui/core/FormControl";
 import InputLabel from "@material-ui/core/InputLabel";
 import Select from "@material-ui/core/Select";
 
-import {listenPollStudents, setPollStudent} from "../firebaseApi";
+import {fetchPoll, listenPollStudents, setPollStudent} from "../firebaseApi";
 
 const shade = 200;
 const colors = [amber[shade], cyan[shade], blue[shade], purple[shade], orange[shade], teal[shade], lime[shade], brown[shade]];
@@ -60,6 +60,7 @@ class StudentPoll extends Component {
         let data = {
             pollID: this.props.poll.pollID,
             action: students => {
+                console.log(students)
                 this.setState({students: students})
             }
         };
@@ -69,6 +70,17 @@ class StudentPoll extends Component {
     componentDidUpdate(prevProps, prevState, snapshot) {
         //console.log('InstructorPoll: componentDidUpdate', prevProps, this.props);
 
+        if (this.props.poll.pollID !== prevProps.poll.pollID) {
+            this.unListenPollStudents();
+
+            let data = {
+                pollID: this.props.poll.pollID,
+                action: students => {
+                    this.setState({students: students})
+                }
+            };
+            this.unListenPollStudents = listenPollStudents(data);
+        }
     }
 
     componentWillUnmount() {
@@ -187,10 +199,16 @@ class StudentPoll extends Component {
                 )}
             </ButtonGroup>
         );
-
+        /*
+                    style={{
+                        backgroundColor: student.studentVote === '' ? '' : this.props.poll.pollVotedColor,
+                        height: '100vh',
+                    }}
+         */
         return (
             this.state.students === null ? null :
-                <div>
+                <div
+                >
                     <Card
                         className={this.props.classes.pollBackground}
                         elevation={0}
@@ -314,10 +332,6 @@ class StudentPoll extends Component {
                     </Card>
 
                     <Divider/>
-                    {/*
-                <div style={{backgroundColor: this.state.vote === null ? '' : this.state.color, height: '100vh'}}>
-                </div>
-                */}
                 </div>
         );
     }

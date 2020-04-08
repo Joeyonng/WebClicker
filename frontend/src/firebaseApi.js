@@ -368,6 +368,7 @@ export const fetchPolls = (data) => {
                 poll['pollIndex'] = ++index;
                 poll['pollStartTime'] = doc.get('pollStartTime');
                 poll['pollSessionID'] = doc.get('pollSessionID');
+                poll['pollVotedColor'] = doc.get('pollVotedColor');
                 poll['pollCategories'] = doc.get('pollCategories');
                 polls[doc.id] = poll;
             });
@@ -388,6 +389,7 @@ export const fetchPoll = (data) => {
             poll['pollID'] = doc.id;
             poll['pollStartTime'] = doc.get('pollStartTime');
             poll['pollSessionID'] = doc.get('pollSessionID');
+            poll['pollVotedColor'] = doc.get('pollVotedColor');
             poll['pollCategories'] = doc.get('pollCategories');
 
             resolve(poll);
