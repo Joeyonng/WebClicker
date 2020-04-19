@@ -24,6 +24,11 @@ import ButtonGroup from "@material-ui/core/ButtonGroup";
 import FormControl from "@material-ui/core/FormControl";
 import InputLabel from "@material-ui/core/InputLabel";
 import Select from "@material-ui/core/Select";
+import Dialog from "@material-ui/core/Dialog";
+import DialogContent from "@material-ui/core/DialogContent";
+import DialogActions from "@material-ui/core/DialogActions";
+import IconButton from "@material-ui/core/IconButton";
+import Brightness4OutlinedIcon from '@material-ui/icons/Brightness4Outlined';
 
 import {fetchPoll, listenPollStudents, setPollStudent} from "../firebaseApi";
 
@@ -49,6 +54,7 @@ class StudentPoll extends Component {
         //console.log("InstructorPoll Constructor", this.props);
 
         this.state = {
+            colorOpen: false,
             imageUrl: null,
             students: null,
         };
@@ -60,7 +66,6 @@ class StudentPoll extends Component {
         let data = {
             pollID: this.props.poll.pollID,
             action: students => {
-                console.log(students)
                 this.setState({students: students})
             }
         };
@@ -199,16 +204,10 @@ class StudentPoll extends Component {
                 )}
             </ButtonGroup>
         );
-        /*
-                    style={{
-                        backgroundColor: student.studentVote === '' ? '' : this.props.poll.pollVotedColor,
-                        height: '100vh',
-                    }}
-         */
+
         return (
             this.state.students === null ? null :
-                <div
-                >
+                <div>
                     <Card
                         className={this.props.classes.pollBackground}
                         elevation={0}
@@ -226,10 +225,23 @@ class StudentPoll extends Component {
                                     Object.keys(this.state.students).length + ' Student Responses'
                                 }
                             />
+                            {student.studentVote === '' ? null :
+                                <IconButton
+                                    onClick={() => {
+                                        this.setState({colorOpen: true})
+                                    }}
+                                >
+                                    <Brightness4OutlinedIcon/>
+                                </IconButton>
+                            }
                             {mobile ? null : voteButtons(false)}
                         </ListItem>
 
-                        {!mobile ? null : <ListItem> {voteButtons(true)} </ListItem>}
+                        {!mobile ? null :
+                            <ListItem>
+                                {voteButtons(true)}
+                            </ListItem>
+                        }
 
                         <ListItem>
                             <Grid
@@ -332,6 +344,39 @@ class StudentPoll extends Component {
                     </Card>
 
                     <Divider/>
+
+                    <Dialog
+                        disableBackdropClick
+                        fullScreen={mobile}
+                        fullWidth
+                        maxWidth="md"
+                        open={this.state.colorOpen}
+                        onClose={() => {
+                            this.setState({colorOpen: false})
+                        }}
+                    >
+                        <DialogContent
+                            style={{
+                                backgroundColor: this.props.poll.pollVotedColor,
+                                height: '100vh'
+                            }}
+                        >
+                        </DialogContent>
+
+                        <DialogActions
+                            style={{
+                                backgroundColor: this.props.poll.pollVotedColor,
+                            }}
+                        >
+                            <Button
+                                onClick={() => {
+                                    this.setState({colorOpen: false})
+                                }}
+                            >
+                                Close
+                            </Button>
+                        </DialogActions>
+                    </Dialog>
                 </div>
         );
     }

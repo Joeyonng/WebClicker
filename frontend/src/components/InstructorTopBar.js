@@ -46,6 +46,7 @@ const styles = theme => ({
         bottom: 0,
     },
     pollActions: {
+        padding: 0,
         width: 550
     }
 });
@@ -121,8 +122,9 @@ class InstructorTopBar extends React.Component {
                 dense={true}
             >
                 <ListItemText
-                    primary={"Poll " + (this.props.polls[this.props.courses[this.props.match.params.courseID].courseActivityPollID] === undefined ? ''
-                        : this.props.polls[this.props.courses[this.props.match.params.courseID].courseActivityPollID].pollIndex)}
+                    primary={this.props.polls[this.props.courses[this.props.match.params.courseID].courseActivityPollID] === undefined ? 'No Poll is Active'
+                        : 'Poll ' + this.props.polls[this.props.courses[this.props.match.params.courseID].courseActivityPollID].pollIndex
+                        + (this.props.courses[this.props.match.params.courseID].courseActivityPollLive ? ' is running' : ' is stopped')}
                     secondary={"Session " + (this.props.sessions[this.props.courses[this.props.match.params.courseID].courseActivitySessionID] === undefined ? ''
                         : this.props.sessions[this.props.courses[this.props.match.params.courseID].courseActivitySessionID].sessionIndex)}
                 />
