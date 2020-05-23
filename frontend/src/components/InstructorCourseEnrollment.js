@@ -25,7 +25,7 @@ import NavigateBeforeOutlinedIcon from '@material-ui/icons/NavigateBeforeOutline
 import AttachFileOutlinedIcon from '@material-ui/icons/AttachFileOutlined';
 import GetAppOutlinedIcon from '@material-ui/icons/GetAppOutlined';
 
-import {fetchCourseStudents, setCourseStudent} from "../firebaseApi";
+import {fetchCourseStudents, setCourseStudents} from "../firebaseApi";
 
 const styles = theme => ({
 });
@@ -51,7 +51,7 @@ class InstructorCourseEnrollment extends Component {
             };
 
             fetchCourseStudents(data).then(students => {
-                let studentsData = this.convertStudentsToTable(students);
+                let studentsData = this.convertStudentsToTable(students, this.props.course.courseCategories);
                 this.setState({studentsData: studentsData});
             });
         }
@@ -67,42 +67,48 @@ class InstructorCourseEnrollment extends Component {
                 };
 
                 fetchCourseStudents(data).then(students => {
-                    let studentsData = this.convertStudentsToTable(students);
+                    let studentsData = this.convertStudentsToTable(students, this.props.course.courseCategories);
                     this.setState({studentsData: studentsData});
                 });
             }
         }
     }
 
-    convertStudentsToTable(students) {
-        let studentsData = []
+    convertStudentsToTable(students, courseCategories) {
+        let studentsData = [];
         for(let student of Object.values(students)) {
             let studentData = {};
-            studentData['Student ID'] = student.studentID;
-
-            for(let category in student.studentCategories) {
-                studentData[category] = Number(student.studentCategories[category]);
-            }
-            studentsData.push(studentData);
-        }
-        return studentsData
-    }
-
-    /*
-    convertTableToStudents(studentsData) {
-        let students = []
-        for(let studentData of Object.values(studentsData)) {
-            let student = {};
             studentData['studentID'] = student.studentID;
 
             for(let category in student.studentCategories) {
-                studentData[category] = student.studentCategories[category];
+                studentData[category] = courseCategories[category].indexOf(student.studentCategories[category]);
             }
             studentsData.push(studentData);
         }
         return studentsData
     }
-     */
+
+    convertTableToStudents(studentsData, courseCategories) {
+        let students = {};
+        for(let studentData of studentsData) {
+            let student = {studentCategories: {}};
+            for(let columnName in studentData) {
+                if(columnName === 'studentID') {
+                    student[columnName] = studentData[columnName]
+                }
+                else if (columnName !== 'tableData') {
+                    let optionName = courseCategories[columnName][studentData[columnName]];
+                    if(optionName !== undefined) {
+                        student['studentCategories'][columnName] = optionName
+                    }
+                }
+            }
+
+            students[studentData['studentID']] = student;
+        }
+
+        return students
+    }
 
     render() {
         let mobile = this.props.width === 'sm' || this.props.width === 'xs';
@@ -124,7 +130,7 @@ class InstructorCourseEnrollment extends Component {
                 <DialogContent>
                     <MaterialTable
                         title="Students"
-                        columns={[{title: 'Student ID', field: 'Student ID'}].concat(
+                        columns={[{title: 'Student ID', field: 'studentID'}].concat(
                             Object.keys(this.props.course.courseCategories).map((category) => {
                                 return {
                                     title: category,
@@ -204,7 +210,7 @@ class InstructorCourseEnrollment extends Component {
                         ]}
                         editable={{
                             onRowAdd: newData => new Promise(resolve => {
-                                if (Object.keys(newData).length - 1 !== Object.keys(this.course.categories).length) {
+                                if (Object.keys(newData).length - 1 !== Object.keys(this.props.course.courseCategories).length) {
                                     resolve();
                                     return;
                                 }
@@ -213,18 +219,10 @@ class InstructorCourseEnrollment extends Component {
                                 newStudentsData.push(newData);
                                 this.setState({studentsData: newStudentsData});
 
-
-                                let data = {
-                                    courseID: this.props.course.courseID,
-                                    studentID: newData['Student ID'],
-                                    categories: data.categories,
-                                };
-                                setCourseStudent()
-
                                 resolve();
                             }),
                             onRowUpdate: (newData, oldData) => new Promise(resolve => {
-                                if (Object.keys(newData).length - 1 !== Object.keys(this.course.categories).length) {
+                                if (Object.keys(newData).length - 1 !== Object.keys(this.props.course.courseCategories).length) {
                                     resolve();
                                     return;
                                 }
@@ -311,6 +309,14 @@ class InstructorCourseEnrollment extends Component {
                     <Button
                         color="primary"
                         onClick={() => {
+                            let students = this.convertTableToStudents(this.state.studentsData, this.props.course.courseCategories);
+
+                            let data = {
+                                courseID: this.props.course.courseID,
+                                students: students,
+                            };
+                            setCourseStudents(data);
+
                             this.props.openCtl(false)
                         }}
                     >

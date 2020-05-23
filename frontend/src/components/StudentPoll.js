@@ -168,13 +168,10 @@ class StudentPoll extends Component {
 
     render() {
         let mobile = this.props.width === 'sm' || this.props.width === 'xs';
-        let student = {
-            studentVote: '',
-            studentCategories: Object.keys(this.props.poll.pollCategories).reduce((acc,cur) => (acc[cur] = '', acc), {}),
-        };
+
+        let studentVote = '';
         if (this.state.students !== null && this.state.students[this.props.account.accountID] !== undefined) {
-            student['studentVote'] = this.state.students[this.props.account.accountID].studentVote;
-            student['studentCategories'] = this.state.students[this.props.account.accountID].studentCategories;
+            studentVote = this.state.students[this.props.account.accountID].studentVote;
         }
 
         let voteButtons = (fullWidth) => (
@@ -183,14 +180,13 @@ class StudentPoll extends Component {
                     <Button
                         key={choice}
                         disabled={!this.props.course.courseActivityPollLive}
-                        color={student.studentVote === choice ? "primary" : "default"}
-                        variant={student.studentVote=== choice ? "contained" : "outlined"}
+                        color={studentVote === choice ? "primary" : "default"}
+                        variant={studentVote=== choice ? "contained" : "outlined"}
                         onClick={() => {
                             let data = {
                                 pollID: this.props.poll.pollID,
                                 studentID: this.props.account.accountID,
                                 vote: choice,
-                                categories: student.studentCategories,
                             };
 
                             setPollStudent(data).then(() => {
@@ -225,7 +221,8 @@ class StudentPoll extends Component {
                                     Object.keys(this.state.students).length + ' Student Responses'
                                 }
                             />
-                            {student.studentVote === '' ? null :
+
+                            {studentVote === '' ? null :
                                 <IconButton
                                     onClick={() => {
                                         this.setState({colorOpen: true})

@@ -290,16 +290,21 @@ export const fetchCourseStudents = (data) => {
     });
 };
 
-export const setCourseStudent = (data) => {
+export const setCourseStudents = (data) => {
     let courseID = data.courseID;
-    let studentID = data.studentID;
-    let categories = data.categories;
+    let students = data.students;
 
     return new Promise((resolve, reject) => {
-        firebase.firestore().collection('courses').doc(courseID).collection('students').doc(studentID).set({
-            studentID: studentID,
-            categories: categories,
-        }).then(() => {
+        let promises = [];
+        for(let studentID in students) {
+            let promise = firebase.firestore().collection('courses').doc(courseID).collection('students').doc(studentID).set({
+                studentID: students[studentID]['studentID'],
+                studentCategories: students[studentID]['studentCategories'],
+            });
+            promises.push(promise);
+        }
+
+        Promise.all(promises).then(() => {
             resolve();
         }).catch(err => {
             console.log(err);
