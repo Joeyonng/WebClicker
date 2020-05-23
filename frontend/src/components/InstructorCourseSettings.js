@@ -24,22 +24,21 @@ import {changeCourses} from "../redux";
 const styles = theme => ({
 });
 
-class CourseSettings extends React.Component {
+class InstructorCourseSettings extends React.Component {
     constructor(props) {
         super(props);
-        //console.log("CourseSettings props", this.props);
+        //console.log("InstructorCourseSettings props", this.props);
 
-        this.course = this.props.courses[this.props.match.params.courseID];
         this.state = {
-            name: this.props.newCourse ? '' : this.course.courseName,
-            quarter: this.props.newCourse ? '' : this.course.courseQuarter,
-            categoryNames: this.props.newCourse ? [] : Object.keys(this.course.courseCategories),
-            optionNames: this.props.newCourse ? [] : Object.values(this.course.courseCategories),
+            name: this.props.course === undefined ? '' : this.props.course.courseName,
+            quarter: this.props.course === undefined ? '' : this.props.course.courseQuarter,
+            categoryNames: this.props.course === undefined ? [] : Object.keys(this.props.course.courseCategories),
+            optionNames: this.props.course === undefined ? [] : Object.values(this.props.course.courseCategories),
 
             nameError: '',
             quarterError: '',
             categoryNamesErrors: '',
-            optionNamesErrors: this.props.newCourse ? [] : Object.keys(this.course.courseCategories).map(() => ""),
+            optionNamesErrors: this.props.course === undefined ? [] : Object.keys(this.props.course.courseCategories).map(() => ""),
         };
     }
 
@@ -264,4 +263,4 @@ const mapDispatchToProps = (dispatch) => {
 export default connect(
     mapStateToProps,
     mapDispatchToProps
-)(withRouter(withStyles(styles, {withTheme: true})(withWidth()(CourseSettings))));
+)(withRouter(withStyles(styles, {withTheme: true})(withWidth()(InstructorCourseSettings))));

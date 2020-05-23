@@ -243,54 +243,6 @@ class StudentPoll extends Component {
                             </ListItem>
                         }
 
-                        <ListItem>
-                            <Grid
-                                style={{marginTop: 8, marginBottom: 8}}
-                                container
-                                direction="row"
-                                justify="center"
-                                alignItems="center"
-                                spacing={1}
-                            >
-                                {Object.entries(this.props.poll.pollCategories).map(([categoryName, optionNames]) =>
-                                    <Grid
-                                        key={categoryName}
-                                        style={{marginTop: 2, marginBottom: 2}}
-                                        item
-                                        md={3}
-                                        xs={12}
-                                    >
-                                        <FormControl
-                                            variant="outlined"
-                                            fullWidth={true}
-                                            size="small"
-                                            disabled={!this.props.course.courseActivityPollLive}
-                                        >
-                                            <InputLabel>{categoryName}</InputLabel>
-                                            <Select
-                                                value={student.studentCategories[categoryName]}
-                                                onChange={(event) => {
-                                                    student.studentCategories[categoryName] = event.target.value;
-
-                                                    this.setState({students: Object.assign(this.state.students, {[this.props.account.accountID]: student})});
-                                                }}
-                                                label={categoryName}
-                                            >
-                                                {optionNames.map(optionName =>
-                                                    <MenuItem
-                                                        key={optionName}
-                                                        value={optionName}
-                                                    >
-                                                        {optionName}
-                                                    </MenuItem>
-                                                )}
-                                            </Select>
-                                        </FormControl>
-                                    </Grid>
-                                )}
-                            </Grid>
-                        </ListItem>
-
                         <Grid
                             container
                             direction="row"

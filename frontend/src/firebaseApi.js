@@ -162,6 +162,7 @@ const getCourse = (doc) => {
 
     course['courseID'] = doc.id;
     course['courseName'] = doc.get('courseName');
+    course['courseQuarter'] = doc.get('courseQuarter');
     course['courseCategories'] = doc.get('courseCategories');
     course['courseInstructorID'] = doc.get('courseInstructorID');
     course['courseActivitySessionID'] = doc.get('courseActivitySessionID');
@@ -268,6 +269,44 @@ export const createCourse = (data) => {
     })
 };
 
+export const fetchCourseStudents = (data) => {
+    let courseID = data.courseID;
+
+    return new Promise((resolve, reject) => {
+        firebase.firestore().collection('courses').doc(courseID).collection('students').get().then(query => {
+            let students = {};
+
+            query.forEach((doc) => {
+                let student = {};
+                student['studentID'] = doc.id;
+                student['studentCategories'] = doc.get('studentCategories');
+                students[doc.id] = student;
+            });
+
+            resolve(students);
+        }).catch(err => {
+            console.log(err);
+        });
+    });
+};
+
+export const setCourseStudent = (data) => {
+    let courseID = data.courseID;
+    let studentID = data.studentID;
+    let categories = data.categories;
+
+    return new Promise((resolve, reject) => {
+        firebase.firestore().collection('courses').doc(courseID).collection('students').doc(studentID).set({
+            studentID: studentID,
+            categories: categories,
+        }).then(() => {
+            resolve();
+        }).catch(err => {
+            console.log(err);
+        });
+    });
+};
+
 /*
  Session-related functions
  */
@@ -354,23 +393,29 @@ export const deactivateSession = (data) => {
 /*
  Poll-related functions
  */
+const getPoll = (pollDoc) => {
+    let poll = {};
+    poll['pollID'] = pollDoc.id;
+    poll['pollStartTime'] = pollDoc.get('pollStartTime');
+    poll['pollSessionID'] = pollDoc.get('pollSessionID');
+    poll['pollVotedColor'] = pollDoc.get('pollVotedColor');
+    poll['pollCategories'] = pollDoc.get('pollCategories');
+
+    return poll
+};
+
 export const fetchPolls = (data) => {
     let sessionID = data.sessionID;
 
     return new Promise((resolve, reject) => {
-        firebase.firestore().collection('polls').where('pollSessionID', '==', sessionID).orderBy('pollStartTime', 'asc').get().then(query => {
+        firebase.firestore().collection('polls').where('pollSessionID', '==', sessionID).orderBy('pollStartTime', 'asc').get().then(pollDocs => {
             let polls = {};
 
             let index = 0;
-            query.forEach((doc) => {
-                let poll = {};
-                poll['pollID'] = doc.id;
+            pollDocs.forEach(pollDoc => {
+                let poll = getPoll(pollDoc);
                 poll['pollIndex'] = ++index;
-                poll['pollStartTime'] = doc.get('pollStartTime');
-                poll['pollSessionID'] = doc.get('pollSessionID');
-                poll['pollVotedColor'] = doc.get('pollVotedColor');
-                poll['pollCategories'] = doc.get('pollCategories');
-                polls[doc.id] = poll;
+                polls[pollDoc.id] = poll;
             });
 
             resolve(polls);
@@ -384,13 +429,8 @@ export const fetchPoll = (data) => {
     let pollID = data.pollID;
 
     return new Promise((resolve, reject) => {
-        firebase.firestore().collection('polls').doc(pollID).get().then(doc => {
-            let poll = {};
-            poll['pollID'] = doc.id;
-            poll['pollStartTime'] = doc.get('pollStartTime');
-            poll['pollSessionID'] = doc.get('pollSessionID');
-            poll['pollVotedColor'] = doc.get('pollVotedColor');
-            poll['pollCategories'] = doc.get('pollCategories');
+        firebase.firestore().collection('polls').doc(pollID).get().then(pollDoc => {
+            let poll = getPoll(pollDoc);
 
             resolve(poll);
         }).catch((err) => {
@@ -488,8 +528,8 @@ export const listenPollStudents = (data) => {
         querySnapshot.forEach((doc) => {
             students[doc.id] = {
                 studentID: doc.id,
-                studentVote: doc.get('vote'),
-                studentCategories: doc.get('categories')
+                studentVote: doc.get('studentVote'),
+                studentCategories: doc.get('studentCategories')
             };
         });
         action(students);
@@ -503,17 +543,22 @@ export const setPollStudent = (data) => {
     let pollID = data.pollID;
     let studentID = data.studentID;
     let vote = data.vote;
-    let categories = data.categories;
 
     return new Promise((resolve, reject) => {
-        firebase.firestore().collection('polls').doc(pollID).collection('students').doc(studentID).set({
-            studentID: studentID,
-            vote: vote,
-            categories: categories,
-        }).then(() => {
-            resolve();
-        }).catch(err => {
-            console.log(err);
+        firebase.firestore().collection('polls').doc(pollID).get().then(pollDoc => {
+            firebase.firestore().collection('sessions').doc(pollDoc.get('pollSessionID')).get().then(sessionDoc => {
+                firebase.firestore().collection('courses').doc(sessionDoc.get('sessionCourseID')).collection('students').doc(studentID).get().then(studentDoc => {
+                    firebase.firestore().collection('polls').doc(pollID).collection('students').doc(studentID).set({
+                        studentID: studentID,
+                        studentVote: vote,
+                        studentCategories: studentDoc.get('studentCategories'),
+                    }).then(() => {
+                        resolve();
+                    }).catch(err => {
+                        console.log(err);
+                    });
+                })
+            })
         });
     });
 };
