@@ -25,46 +25,89 @@ import NavigateBeforeOutlinedIcon from '@material-ui/icons/NavigateBeforeOutline
 import AttachFileOutlinedIcon from '@material-ui/icons/AttachFileOutlined';
 import GetAppOutlinedIcon from '@material-ui/icons/GetAppOutlined';
 
+import {fetchCourseStudents, setCourseStudents} from "../firebaseApi";
+
 const styles = theme => ({
 });
 
-class CourseDashboard extends Component {
+class InstructorCourseEnrollment extends Component {
     constructor(props) {
         super(props);
-        //console.log("CourseDashboard props", this.props);
-
-        this.course = this.props.courses[this.props.match.params.course];
-
-        let studentData = [];
-        if(this.course !== undefined) {
-            for (let studentID in this.course.students) {
-                let data = {};
-                data['Student ID'] = studentID;
-                for (let category in this.course.students[studentID]) {
-                    data[category] = Number(this.course.students[studentID][category]);
-                }
-                studentData.push(data);
-            }
-        }
+        //console.log("InstructorCourseEnrollment props", this.props);
 
         this.state = {
-            studentData: studentData,
+            studentsData: null,
         };
 
         this.studentFileRef = React.createRef();
     }
 
-    convert(studentData) {
-        this.course.students = {};
-        for(let data of studentData) {
-            this.course.students[data['Student ID']] = {};
-            for(let field in data) {
-                if(field !== 'Student ID' && field !== 'tableData') {
-                    this.course.students[data['Student ID']][field] = Number(data[field]);
-                }
+    componentDidMount() {
+        //console.log('InstructorCourseEnrollment: componentDidMount', this.props);
+
+        if (this.props.course !== undefined) {
+            let data = {
+                courseID: this.props.course.courseID,
+            };
+
+            fetchCourseStudents(data).then(students => {
+                let studentsData = this.convertStudentsToTable(students, this.props.course.courseCategories);
+                this.setState({studentsData: studentsData});
+            });
+        }
+    }
+
+    componentDidUpdate(prevProps, prevState, snapshot) {
+        //console.log('InstructorCourseEnrollment: componentDidUpdate', prevProps, this.props);
+
+        if (this.props.course !== prevProps.course) {
+            if (this.props.course !== undefined) {
+                let data = {
+                    courseID: this.props.course.courseID,
+                };
+
+                fetchCourseStudents(data).then(students => {
+                    let studentsData = this.convertStudentsToTable(students, this.props.course.courseCategories);
+                    this.setState({studentsData: studentsData});
+                });
             }
         }
-        return this.course.students;
+    }
+
+    convertStudentsToTable(students, courseCategories) {
+        let studentsData = [];
+        for(let student of Object.values(students)) {
+            let studentData = {};
+            studentData['studentID'] = student.studentID;
+
+            for(let category in student.studentCategories) {
+                studentData[category] = courseCategories[category].indexOf(student.studentCategories[category]);
+            }
+            studentsData.push(studentData);
+        }
+        return studentsData
+    }
+
+    convertTableToStudents(studentsData, courseCategories) {
+        let students = {};
+        for(let studentData of studentsData) {
+            let student = {studentCategories: {}};
+            for(let columnName in studentData) {
+                if(columnName === 'studentID') {
+                    student[columnName] = studentData[columnName]
+                }
+                else if (columnName !== 'tableData') {
+                    let optionName = courseCategories[columnName][studentData[columnName]];
+                    if(optionName !== undefined) {
+                        student['studentCategories'][columnName] = optionName
+                    }
+                }
+            }
+
+            students[studentData['studentID']] = student;
+        }
+
+        return students
     }
 
     render() {
@@ -81,24 +124,23 @@ class CourseDashboard extends Component {
                 onClose={() => {this.props.openCtl(false)}}
             >
                 <DialogTitle>
-                    {this.course.name + ' Course Dashboard'}
+                    {this.props.course.courseName + ' Students'}
                 </DialogTitle>
 
                 <DialogContent>
                     <MaterialTable
                         title="Students"
-                        columns={[{title: "Student ID", field: "Student ID"}].concat(
-                            Object.keys(this.course.categories).map((category) => {
+                        columns={[{title: 'Student ID', field: 'studentID'}].concat(
+                            Object.keys(this.props.course.courseCategories).map((category) => {
                                 return {
                                     title: category,
                                     field: category,
                                     emptyValue: 'Unknown',
-                                    lookup: Object.assign({'-1': 'Unknown'}, this.course.categories[category]),
+                                    lookup: Object.assign({'-1': 'Unknown'}, this.props.course.courseCategories[category]),
                                 }
                             })
                         )}
-
-                        data={this.state.studentData}
+                        data={this.state.studentsData === null ? [] : this.state.studentsData}
                         icons={{
                             Add: AddOutlinedIcon,
                             Delete: DeleteOutlinedIcon,
@@ -130,8 +172,8 @@ class CourseDashboard extends Component {
                                 onClick: () => {
                                     let wb = XLSX.utils.book_new();
 
-                                    let studentSheet = [['Student ID'].concat(Object.keys(this.course.categories))];
-                                    for (let student of this.state.studentData) {
+                                    let studentSheet = [['Student ID'].concat(Object.keys(this.props.course.courseCategories))];
+                                    for (let student of this.state.studentsData) {
                                         let row = [];
                                         for (let field of studentSheet[0]) {
                                             row.push(student[field]);
@@ -150,11 +192,11 @@ class CourseDashboard extends Component {
                                         [''],
                                         ['Category', '-1', '0', '1', '2', '3', '4'],
                                     ];
-                                    for (let category in this.course.categories) {
+                                    for (let category in this.props.course.courseCategories) {
                                         let row = [];
                                         row.push(category);
                                         row.push('Unknown');
-                                        for (let subcategory of this.course.categories[category]) {
+                                        for (let subcategory of this.props.course.courseCategories[category]) {
                                             row.push(subcategory);
                                         }
                                         instructionSheet.push(row);
@@ -162,60 +204,40 @@ class CourseDashboard extends Component {
                                     let ws2 = XLSX.utils.json_to_sheet(instructionSheet, {skipHeader: true});
                                     XLSX.utils.book_append_sheet(wb, ws2, 'Instruction Sheet');
 
-                                    XLSX.writeFile(wb, this.course.name + ' students.xlsx')
+                                    XLSX.writeFile(wb, this.props.course.courseName + ' students.xlsx')
                                 }
                             }
                         ]}
                         editable={{
                             onRowAdd: newData => new Promise(resolve => {
-                                if (Object.keys(newData).length - 1 !== Object.keys(this.course.categories).length) {
+                                if (Object.keys(newData).length - 1 !== Object.keys(this.props.course.courseCategories).length) {
                                     resolve();
                                     return;
                                 }
 
-                                let data = this.state.studentData;
-                                data.push(newData);
-                                this.setState({studentData: data});
-
-                                /*
-                                setCourse(this.props.account.email, {
-                                    name: this.props.match.params.course,
-                                    students: this.convert(data),
-                                }, true);
-                                 */
+                                let newStudentsData = this.state.studentsData;
+                                newStudentsData.push(newData);
+                                this.setState({studentsData: newStudentsData});
 
                                 resolve();
                             }),
                             onRowUpdate: (newData, oldData) => new Promise(resolve => {
-                                if (Object.keys(newData).length - 1 !== Object.keys(this.course.categories).length) {
+                                if (Object.keys(newData).length - 1 !== Object.keys(this.props.course.courseCategories).length) {
                                     resolve();
                                     return;
                                 }
 
-                                let data = this.state.studentData;
+                                let data = this.state.studentsData;
                                 data[data.indexOf(oldData)] = newData;
-                                this.setState({studentData: data});
-
-                                /*
-                                setCourse(this.props.account.email, {
-                                    name: this.props.match.params.course,
-                                    students: this.convert(data),
-                                }, true);
-                                 */
+                                this.setState({studentsData: data});
 
                                 resolve();
                             }),
                             onRowDelete: oldData => new Promise(resolve => {
-                                let data = this.state.studentData;
+                                let data = this.state.studentsData;
                                 data.splice(data.indexOf(oldData), 1);
-                                this.setState({studentData: data});
+                                this.setState({studentsData: data});
 
-                                /*
-                                setCourse(this.props.account.email, {
-                                    name: this.props.match.params.course,
-                                    students: this.convert(data),
-                                }, true);
-                                */
                                 resolve();
                             })
                         }}
@@ -245,7 +267,7 @@ class CourseDashboard extends Component {
                                     let studentJson = XLSX.utils.sheet_to_json(studentSheet);
 
                                     // Convert student json to table format
-                                    let studentData = [];
+                                    let studentsData = [];
                                     let students = {};
                                     for (let row of studentJson) {
                                         let data = {};
@@ -265,17 +287,10 @@ class CourseDashboard extends Component {
                                             }
                                         }
 
-                                        studentData.push(data)
+                                        studentsData.push(data)
                                     }
 
-                                    this.setState({studentData: studentData});
-
-                                    /*
-                                    setCourse(this.props.account.email, {
-                                        name: this.props.match.params.course,
-                                        students: students,
-                                    }, true);
-                                     */
+                                    this.setState({studentsData: studentsData});
                                 };
 
                                 if (rABS) {
@@ -294,6 +309,14 @@ class CourseDashboard extends Component {
                     <Button
                         color="primary"
                         onClick={() => {
+                            let students = this.convertTableToStudents(this.state.studentsData, this.props.course.courseCategories);
+
+                            let data = {
+                                courseID: this.props.course.courseID,
+                                students: students,
+                            };
+                            setCourseStudents(data);
+
                             this.props.openCtl(false)
                         }}
                     >
@@ -317,4 +340,4 @@ const mapDispatchToProps = (dispatch) => {
 export default connect(
     mapStateToProps,
     mapDispatchToProps
-)(withRouter(withStyles(styles, {withTheme: true})(withWidth()(CourseDashboard))));
+)(withRouter(withStyles(styles, {withTheme: true})(withWidth()(InstructorCourseEnrollment))));

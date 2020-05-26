@@ -30,7 +30,7 @@ const styles = theme => ({
 class SnifferPage extends Component {
     constructor(props) {
         super(props);
-        //console.log("CourseSettings props", this.props);
+        //console.log("InstructorCourseSettings props", this.props);
 
         this.state = {
             activeStep: 0,

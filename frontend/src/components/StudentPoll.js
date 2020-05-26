@@ -168,13 +168,10 @@ class StudentPoll extends Component {
 
     render() {
         let mobile = this.props.width === 'sm' || this.props.width === 'xs';
-        let student = {
-            studentVote: '',
-            studentCategories: Object.keys(this.props.poll.pollCategories).reduce((acc,cur) => (acc[cur] = '', acc), {}),
-        };
+
+        let studentVote = '';
         if (this.state.students !== null && this.state.students[this.props.account.accountID] !== undefined) {
-            student['studentVote'] = this.state.students[this.props.account.accountID].studentVote;
-            student['studentCategories'] = this.state.students[this.props.account.accountID].studentCategories;
+            studentVote = this.state.students[this.props.account.accountID].studentVote;
         }
 
         let voteButtons = (fullWidth) => (
@@ -183,14 +180,13 @@ class StudentPoll extends Component {
                     <Button
                         key={choice}
                         disabled={!this.props.course.courseActivityPollLive}
-                        color={student.studentVote === choice ? "primary" : "default"}
-                        variant={student.studentVote=== choice ? "contained" : "outlined"}
+                        color={studentVote === choice ? "primary" : "default"}
+                        variant={studentVote=== choice ? "contained" : "outlined"}
                         onClick={() => {
                             let data = {
                                 pollID: this.props.poll.pollID,
                                 studentID: this.props.account.accountID,
                                 vote: choice,
-                                categories: student.studentCategories,
                             };
 
                             setPollStudent(data).then(() => {
@@ -225,7 +221,8 @@ class StudentPoll extends Component {
                                     Object.keys(this.state.students).length + ' Student Responses'
                                 }
                             />
-                            {student.studentVote === '' ? null :
+
+                            {studentVote === '' ? null :
                                 <IconButton
                                     onClick={() => {
                                         this.setState({colorOpen: true})
@@ -242,54 +239,6 @@ class StudentPoll extends Component {
                                 {voteButtons(true)}
                             </ListItem>
                         }
-
-                        <ListItem>
-                            <Grid
-                                style={{marginTop: 8, marginBottom: 8}}
-                                container
-                                direction="row"
-                                justify="center"
-                                alignItems="center"
-                                spacing={1}
-                            >
-                                {Object.entries(this.props.poll.pollCategories).map(([categoryName, optionNames]) =>
-                                    <Grid
-                                        key={categoryName}
-                                        style={{marginTop: 2, marginBottom: 2}}
-                                        item
-                                        md={3}
-                                        xs={12}
-                                    >
-                                        <FormControl
-                                            variant="outlined"
-                                            fullWidth={true}
-                                            size="small"
-                                            disabled={!this.props.course.courseActivityPollLive}
-                                        >
-                                            <InputLabel>{categoryName}</InputLabel>
-                                            <Select
-                                                value={student.studentCategories[categoryName]}
-                                                onChange={(event) => {
-                                                    student.studentCategories[categoryName] = event.target.value;
-
-                                                    this.setState({students: Object.assign(this.state.students, {[this.props.account.accountID]: student})});
-                                                }}
-                                                label={categoryName}
-                                            >
-                                                {optionNames.map(optionName =>
-                                                    <MenuItem
-                                                        key={optionName}
-                                                        value={optionName}
-                                                    >
-                                                        {optionName}
-                                                    </MenuItem>
-                                                )}
-                                            </Select>
-                                        </FormControl>
-                                    </Grid>
-                                )}
-                            </Grid>
-                        </ListItem>
 
                         <Grid
                             container

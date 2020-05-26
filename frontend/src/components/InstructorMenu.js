@@ -14,10 +14,13 @@ import ListItemSecondaryAction from "@material-ui/core/ListItemSecondaryAction";
 import IconButton from "@material-ui/core/IconButton";
 import ExitToAppIcon from '@material-ui/icons/ExitToApp';
 import MoreVertOutlinedIcon from '@material-ui/icons/MoreVertOutlined';
+import Menu from "@material-ui/core/Menu";
+import MenuItem from "@material-ui/core/MenuItem";
 
 import {changeAccount, changeCourses} from "../redux";
 import {fetchCourses, signOut} from "../firebaseApi";
-import CourseSettings from "./CourseSettings";
+import InstructorCourseSettings from "./InstructorCourseSettings";
+import InstructorCourseEnrollment from "./InstructorCourseEnrollment";
 
 const styles = theme => ({
     appBarSpacer: theme.mixins.toolbar,
@@ -39,8 +42,10 @@ class InstructorMenu extends Component {
         //console.log("InstructorMenu Constructor", this.props);
 
         this.state = {
-            snifferPageOpen: false,
+            course: null,
+            courseAnchorEl: null,
             courseSettingsOpen: false,
+            courseEnrollmentOpen: false,
         };
     }
 
@@ -129,8 +134,16 @@ class InstructorMenu extends Component {
                                 }}
                             >
                                 <ListItemText primary={course.courseName} />
+
                                 <ListItemSecondaryAction>
-                                    <IconButton>
+                                    <IconButton
+                                        onClick={(event) => {
+                                            this.setState({
+                                                course: course.courseID,
+                                                courseAnchorEl: event.currentTarget,
+                                            })
+                                        }}
+                                    >
                                         <MoreVertOutlinedIcon/>
                                     </IconButton>
                                 </ListItemSecondaryAction>
@@ -150,12 +163,53 @@ class InstructorMenu extends Component {
                     <Divider/>
                 </Drawer>
 
-                <CourseSettings
+                <Menu
+                    anchorEl={this.state.courseAnchorEl}
+                    open={Boolean(this.state.courseAnchorEl)}
+                    onClose={() => {
+                        this.setState({courseAnchorEl: null})
+                    }}
+                >
+                    <MenuItem
+                        button={true}
+                        onClick={()=>{
+                            this.setState({
+                                courseSettingsOpen: true,
+                                courseAnchorEl: null,
+                            });
+                        }}
+                    >
+                        Settings
+                    </MenuItem>
+
+                    <MenuItem
+                        button={true}
+                        onClick={()=>{
+                            this.setState({
+                                courseEnrollmentOpen: true,
+                                courseAnchorEl: null,
+                            });
+                        }}
+                    >
+                        Enrollment
+                    </MenuItem>
+                </Menu>
+
+                <InstructorCourseSettings
                     key={"Settings New"  + this.state.courseSettingsOpen}
                     open={this.state.courseSettingsOpen}
-                    openCtl={(open) => {this.setState({courseSettingsOpen: open})}}
-                    newCourse={true}
+                    openCtl={open => {this.setState({courseSettingsOpen: open})}}
+                    course={this.props.courses[this.state.course]}
                 />
+
+                {this.props.courses[this.state.course] === undefined ? null :
+                    <InstructorCourseEnrollment
+                        key={"Enrollment"  + this.state.courseEnrollmentOpen}
+                        open={this.state.courseEnrollmentOpen}
+                        openCtl={open => {this.setState({courseEnrollmentOpen: open})}}
+                        course={this.props.courses[this.state.course]}
+                    />
+                }
             </div>
         );
     }
