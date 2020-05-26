@@ -13,9 +13,11 @@ import ListItemText from '@material-ui/core/ListItemText';
 import ListSubheader from '@material-ui/core/ListSubheader';
 import IconButton from "@material-ui/core/IconButton";
 import ExitToAppIcon from '@material-ui/icons/ExitToApp';
+import AddIcon from '@material-ui/icons/Add';
 
 import {changeAccount, changeCourses} from "../redux";
-import {fetchCourses, saveStudentCourse, searchCourses, signOut} from "../firebaseApi";
+import {fetchCourses, saveStudentCourse, searchCourses, signOut, checkCourseCode} from "../firebaseApi";
+import SelectInput from '@material-ui/core/Select/SelectInput';
 
 const styles = theme => ({
     appBarSpacer: theme.mixins.toolbar,
@@ -26,12 +28,11 @@ const styles = theme => ({
         },
     },
     drawer: {
-        width: 260,
-        zIndex: 1,
+        width: 260, zIndex: 1,
     },
     search: {
         margin: "12px",
-    }
+    },
 });
 
 class StudentMenu extends Component {
@@ -41,6 +42,8 @@ class StudentMenu extends Component {
 
         this.state = {
             searchCourses: [],
+            courseCode: "",
+            courseCodeText: "Course code",
         };
     }
 
@@ -163,7 +166,7 @@ class StudentMenu extends Component {
                                 onClick={() => {
                                     if (this.props.account.accountEmail !== '') {
                                         let data = {
-                                            studentID: this.props.account.accountID,
+                                            accountID: this.props.account.accountID,
                                             courseID: course.courseID,
                                         };
 
@@ -180,6 +183,39 @@ class StudentMenu extends Component {
                                 <ListItemText primary={course.courseName} />
                             </ListItem>
                         )}
+                    </List>
+
+                    <List>
+                        <ListItem
+                            key="addCourse"
+                        >
+                            <IconButton
+                                onClick={() => {
+                                    let data = {
+                                        courseCode: this.state.courseCode,
+                                        accountID: this.props.account.accountID,
+                                    }
+
+                                    checkCourseCode(data).then((message) => {
+                                        this.setState({courseCodeText: message});
+                                        // TODO: Add red error when course code is invalid in some way
+                                        setTimeout(() => {
+                                            this.setState({courseCodeText: "Course code"});
+                                        }, 3000);
+                                    });
+                                }}
+                            >
+                                <AddIcon />
+                            </IconButton>
+                            <TextField
+                                variant="outlined"
+                                size="small"
+                                label={this.state.courseCodeText}
+                                onChange={(event) => {
+                                    this.setState({courseCode: event.target.value});
+                                }}
+                            />
+                        </ListItem>
                     </List>
                 </Drawer>
             </div>

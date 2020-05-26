@@ -168,8 +168,9 @@ const getCourse = (doc) => {
     course['courseActivityPollID'] = doc.get('courseActivityPollID');
     course['courseActivityPollLive'] = doc.get('courseActivityPollLive');
     course['courseActivityPollDisplay'] = doc.get('courseActivityPollDisplay');
+    course['students'] = doc.get('students');
 
-    return course
+    return course;
 };
 
 export const listenCourseActivity = (data) => {
@@ -260,12 +261,52 @@ export const createCourse = (data) => {
             courseActivityPollID: '',
             courseActivityPollLive: false,
             courseActivityPollDisplay: false,
+            students: []
         }).then(course => {
             resolve(course.id);
         }).catch(err => {
             console.log(err);
         });
     })
+};
+
+export const checkCourseCode = (data) => {
+    let courseCode = data.courseCode;
+    let accountID = data.accountID;
+
+    return new Promise((resolve, reject) => {
+        firebase.firestore().collection('courses').where('courseCode', '==', courseCode).limit(1).get().then(query => {
+            if (query.empty) {
+                resolve("Invalid code.");
+            } else {
+                let courseRef = query.docs[0].ref;
+                let courseStudentInfo = courseRef.collection('students').doc(accountID);
+                if (!courseStudentInfo.exists) {
+                    // TODO: Add message stating the student is already enrolled
+                    resolve("Already enrolled.");
+                } else {
+                    courseRef.collection('students').doc(accountID).set({
+                        studentCategories: {
+                            // TODO: Currently replaces all information when entered
+                            // TODO: Does not automatically update courses list unless refreshed
+                        },
+                        studentID: accountID,
+                    }).then(() => {
+                        let courseId = courseRef.id;
+                        firebase.firestore().collection('accounts').doc(accountID).update({
+                            studentCourses: firebase.firestore.FieldValue.arrayUnion(courseId)
+                        }).then(() => {
+                            resolve("Success.");
+                        });
+                    }).catch((err) => {
+                        console.log(err);
+                    });
+                }
+            }
+        }).catch((err) => {
+            console.log(err);
+        })
+    });
 };
 
 /*
@@ -522,6 +563,7 @@ export const saveStudentCourse = (data) => {
     let courseID = data.courseID;
     let studentID = data.studentID;
 
+    // TODO: Update course to include student in students array
     return new Promise((resolve, reject) => {
         firebase.firestore().collection('accounts').doc(studentID).update({
             studentCourses: firebase.firestore.FieldValue.arrayUnion(courseID)

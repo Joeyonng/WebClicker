@@ -61,6 +61,7 @@ let initialState = {
          },
          courseSessionID: 'testCourseSessionID',
          coursePollID: 'testCoursePollID',
+         students: [],
      };
      */
     courses: {},
