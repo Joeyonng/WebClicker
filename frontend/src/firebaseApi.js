@@ -306,7 +306,9 @@ export const checkCourseCode = (data) => {
             }
         }).catch((err) => {
             console.log(err);
-        })
+        });
+    });
+};
 
 export const fetchCourseStudents = (data) => {
     let courseID = data.courseID;
