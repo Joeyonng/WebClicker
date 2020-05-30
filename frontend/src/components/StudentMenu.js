@@ -42,8 +42,6 @@ class StudentMenu extends Component {
 
         this.state = {
             searchCourses: [],
-            courseCode: "",
-            courseCodeText: "Course code",
         };
     }
 
@@ -146,10 +144,10 @@ class StudentMenu extends Component {
                         className={this.props.classes.search}
                         variant="outlined"
                         size="small"
-                        label="Search Courses"
+                        label="Course code"
                         onChange={(event) => {
                             let data = {
-                                keyword: event.target.value,
+                                courseCode: event.target.value,
                             };
 
                             searchCourses(data).then(courses => {
@@ -185,38 +183,6 @@ class StudentMenu extends Component {
                         )}
                     </List>
 
-                    <List>
-                        <ListItem
-                            key="addCourse"
-                        >
-                            <IconButton
-                                onClick={() => {
-                                    let data = {
-                                        courseCode: this.state.courseCode,
-                                        accountID: this.props.account.accountID,
-                                    }
-
-                                    checkCourseCode(data).then((message) => {
-                                        this.setState({courseCodeText: message});
-                                        // TODO: Add red error when course code is invalid in some way
-                                        setTimeout(() => {
-                                            this.setState({courseCodeText: "Course code"});
-                                        }, 3000);
-                                    });
-                                }}
-                            >
-                                <AddIcon />
-                            </IconButton>
-                            <TextField
-                                variant="outlined"
-                                size="small"
-                                label={this.state.courseCodeText}
-                                onChange={(event) => {
-                                    this.setState({courseCode: event.target.value});
-                                }}
-                            />
-                        </ListItem>
-                    </List>
                 </Drawer>
             </div>
         );

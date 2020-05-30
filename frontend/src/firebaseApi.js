@@ -223,14 +223,14 @@ export const fetchCourses = (data) => {
 };
 
 export const searchCourses = (data) => {
-    let keyword = data.keyword;
+    let courseCode = data.courseCode;
 
     return new Promise((resolve, reject) => {
-        if (keyword === '' || keyword === undefined) {
-            resolve({})
+        if (courseCode === '' || courseCode === undefined) {
+            resolve({});
         }
         else {
-            firebase.firestore().collection('courses').where('courseName', '>=', keyword).get().then(query => {
+            firebase.firestore().collection('courses').where('courseCode', '==', courseCode).get().then(query => {
                 let courses = {};
 
                 query.forEach((doc) => {
@@ -269,45 +269,6 @@ export const createCourse = (data) => {
             console.log(err);
         });
     })
-};
-
-export const checkCourseCode = (data) => {
-    let courseCode = data.courseCode;
-    let accountID = data.accountID;
-
-    return new Promise((resolve, reject) => {
-        firebase.firestore().collection('courses').where('courseCode', '==', courseCode).limit(1).get().then(query => {
-            if (query.empty) {
-                resolve("Invalid code.");
-            } else {
-                let courseRef = query.docs[0].ref;
-                let courseStudentInfo = courseRef.collection('students').doc(accountID);
-                if (!courseStudentInfo.exists) {
-                    // TODO: Add message stating the student is already enrolled
-                    resolve("Already enrolled.");
-                } else {
-                    courseRef.collection('students').doc(accountID).set({
-                        studentCategories: {
-                            // TODO: Currently replaces all information when entered
-                            // TODO: Does not automatically update courses list unless refreshed
-                        },
-                        studentID: accountID,
-                    }).then(() => {
-                        let courseId = courseRef.id;
-                        firebase.firestore().collection('accounts').doc(accountID).update({
-                            studentCourses: firebase.firestore.FieldValue.arrayUnion(courseId)
-                        }).then(() => {
-                            resolve("Success.");
-                        });
-                    }).catch((err) => {
-                        console.log(err);
-                    });
-                }
-            }
-        }).catch((err) => {
-            console.log(err);
-        });
-    });
 };
 
 export const fetchCourseStudents = (data) => {
@@ -611,14 +572,31 @@ export const setPollStudent = (data) => {
 
 export const saveStudentCourse = (data) => {
     let courseID = data.courseID;
-    let studentID = data.studentID;
+    let accountID = data.accountID;
 
-    // TODO: Update course to include student in students array
     return new Promise((resolve, reject) => {
-        firebase.firestore().collection('accounts').doc(studentID).update({
+        firebase.firestore().collection('accounts').doc(accountID).update({
             studentCourses: firebase.firestore.FieldValue.arrayUnion(courseID)
         }).then(() => {
-            resolve();
+            let courseStudentInfo = firebase.firestore().collection('courses').doc(courseID).collection('students').doc(accountID);
+            courseStudentInfo.get().then(snapshot => {
+                if (snapshot.exists) {
+                    resolve();
+                } else {
+                    courseStudentInfo.set({
+                        studentCategories: {
+                            // TODO: Set all categories to undefined
+                        },
+                        studentID: accountID,
+                    }).then(() => {
+                        resolve();
+                    }).catch(err => {
+                        console.log(err);
+                    });
+                }
+            }).catch(err => {
+                console.log(err);
+            });
         }).catch(err => {
             console.log(err);
         });
