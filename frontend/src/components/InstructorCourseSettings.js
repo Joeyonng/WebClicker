@@ -17,11 +17,22 @@ import InputLabel from "@material-ui/core/InputLabel";
 import Select from "@material-ui/core/Select";
 import MenuItem from "@material-ui/core/MenuItem";
 import FormHelperText from "@material-ui/core/FormHelperText";
+import IconButton from '@material-ui/core/IconButton';
+import RefreshIcon from '@material-ui/icons/Refresh';
 
 import {createCourse, fetchCourses} from "../firebaseApi";
 import {changeCourses} from "../redux";
+import { blue } from '@material-ui/core/colors';
 
 const styles = theme => ({
+    courseCode: {
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'baseline'
+    },
+    generateButton: {
+        marginLeft: '12px'
+    }
 });
 
 class InstructorCourseSettings extends React.Component {
@@ -32,11 +43,13 @@ class InstructorCourseSettings extends React.Component {
         this.state = {
             name: this.props.course === undefined ? '' : this.props.course.courseName,
             quarter: this.props.course === undefined ? '' : this.props.course.courseQuarter,
+            courseCode: this.props.course === undefined ? "None" : (this.props.course.courseCode === undefined ? '' : this.props.course.courseCode),
             categoryNames: this.props.course === undefined ? [] : Object.keys(this.props.course.courseCategories),
             optionNames: this.props.course === undefined ? [] : Object.values(this.props.course.courseCategories),
 
             nameError: '',
             quarterError: '',
+            courseCodeError: '',
             categoryNamesErrors: '',
             optionNamesErrors: this.props.course === undefined ? [] : Object.keys(this.props.course.courseCategories).map(() => ""),
         };
@@ -102,6 +115,39 @@ class InstructorCourseSettings extends React.Component {
                         </Select>
                         {this.state.quarterError.length === 0 ? null : <FormHelperText>{this.state.quarterError}</FormHelperText>}
                     </FormControl>
+
+                    <div className={this.props.classes.courseCode} >
+                        <TextField
+                            fullWidth
+                            disabled
+                            margin="normal"
+                            label="Course code"
+                            value={this.state.courseCode == '' ? "None" : this.state.courseCode}
+                            error={this.state.courseCodeError.length !== 0}
+                            helperText={this.state.courseCodeError}
+                        />
+
+                        <IconButton
+                            className={this.props.classes.generateButton}
+                            variant="outlined"
+                            onClick={() => {
+                                let newCode = "";
+                                let characters = "ABCDFGHJKLMNOPRSTUVWXYZ"
+                                for (let i = 0; i < 6; i++) {
+                                    let charLocation = Math.floor(Math.random() * characters.length);
+                                    newCode += characters.charAt(charLocation);
+                                    characters = characters.substring(0, charLocation) + characters.substring(charLocation + 1);
+                                }
+
+                                this.setState({
+                                    courseCode: newCode,
+                                    courseCodeError: ''
+                                })
+                            }}
+                        >
+                            <RefreshIcon />
+                        </IconButton>
+                    </div>
 
                     <ChipInput
                         fullWidth
@@ -222,6 +268,7 @@ class InstructorCourseSettings extends React.Component {
                                 let data = {
                                     courseName: this.state.name,
                                     courseQuarter: this.state.quarter,
+                                    courseCode: this.state.courseCode,
                                     courseCategories: courseCategories,
                                     courseInstructorID: this.props.account.accountID,
                                     courseActivitySessionID: '',

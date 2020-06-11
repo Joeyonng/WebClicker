@@ -28,7 +28,7 @@ import {
 } from "../firebaseApi";
 import {changeCourses, changePolls, changeSessions} from "../redux";
 import ListItem from "@material-ui/core/ListItem";
-import {ListItemText} from "@material-ui/core";
+import {ListItemText, TextField} from "@material-ui/core";
 import Paper from "@material-ui/core/Paper";
 import ListItemSecondaryAction from "@material-ui/core/ListItemSecondaryAction";
 import CardActions from "@material-ui/core/CardActions";

@@ -59,6 +59,7 @@ let initialState = {
                 'testOptionName',
             ]
          },
+         courseCode: 'testCourseCode',
          courseSessionID: 'testCourseSessionID',
          coursePollID: 'testCoursePollID',
          students: [],
