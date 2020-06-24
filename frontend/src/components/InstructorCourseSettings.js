@@ -19,8 +19,9 @@ import MenuItem from "@material-ui/core/MenuItem";
 import FormHelperText from "@material-ui/core/FormHelperText";
 import IconButton from '@material-ui/core/IconButton';
 import RefreshIcon from '@material-ui/icons/Refresh';
+import ClearIcon from '@material-ui/icons/Clear';
 
-import {createCourse, fetchCourses} from "../firebaseApi";
+import {createCourse, fetchCourses, generateCourseCode} from "../firebaseApi";
 import {changeCourses} from "../redux";
 import { blue } from '@material-ui/core/colors';
 
@@ -31,6 +32,9 @@ const styles = theme => ({
         alignItems: 'baseline'
     },
     generateButton: {
+        marginX: '12px'
+    },
+    clearButton: {
         marginLeft: '12px'
     }
 });
@@ -41,6 +45,7 @@ class InstructorCourseSettings extends React.Component {
         //console.log("InstructorCourseSettings props", this.props);
 
         this.state = {
+            courseID: this.props.course === undefined ? '' : this.props.course.courseID,
             name: this.props.course === undefined ? '' : this.props.course.courseName,
             quarter: this.props.course === undefined ? '' : this.props.course.courseQuarter,
             courseCode: this.props.course === undefined ? "None" : (this.props.course.courseCode === undefined ? '' : this.props.course.courseCode),
@@ -131,21 +136,28 @@ class InstructorCourseSettings extends React.Component {
                             className={this.props.classes.generateButton}
                             variant="outlined"
                             onClick={() => {
-                                let newCode = "";
-                                let characters = "ABCDFGHJKLMNOPRSTUVWXYZ"
-                                for (let i = 0; i < 6; i++) {
-                                    let charLocation = Math.floor(Math.random() * characters.length);
-                                    newCode += characters.charAt(charLocation);
-                                    characters = characters.substring(0, charLocation) + characters.substring(charLocation + 1);
-                                }
+                               generateCourseCode().then(newCode => {
+                                    this.setState({
+                                        courseCode: newCode,
+                                        courseCodeError: ''
+                                    })
+                               })
+                            }}
+                        >
+                            <RefreshIcon />
+                        </IconButton>
 
+                        <IconButton
+                            className={this.props.classes.clearButton}
+                            variant="outlined"
+                            onClick={() => {
                                 this.setState({
-                                    courseCode: newCode,
+                                    courseCode: '',
                                     courseCodeError: ''
                                 })
                             }}
                         >
-                            <RefreshIcon />
+                            <ClearIcon />
                         </IconButton>
                     </div>
 
@@ -266,6 +278,7 @@ class InstructorCourseSettings extends React.Component {
                                 });
 
                                 let data = {
+                                    courseID: this.state.courseID,
                                     courseName: this.state.name,
                                     courseQuarter: this.state.quarter,
                                     courseCode: this.state.courseCode,

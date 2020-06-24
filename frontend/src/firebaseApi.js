@@ -247,7 +247,40 @@ export const searchCourses = (data) => {
     })
 };
 
+export const generateCourseCode = () => {
+    let uniqueCode = false;
+
+    return new Promise((resolve, reject) => {
+        let newCode = "";
+
+        while (!uniqueCode) {
+            uniqueCode = true;
+            let characters = "ABCDFGHJKLMNOPRSTUVWXYZ"
+            for (let i = 0; i < 6; i++) {
+                let charLocation = Math.floor(Math.random() * characters.length);
+                newCode += characters.charAt(charLocation);
+                characters = characters.substring(0, charLocation) + characters.substring(charLocation + 1);
+            }
+
+            firebase.firestore().collection('courses').get().then(courses => {
+                courses.forEach(course => {
+                    if (newCode === course.get('courseID')) {
+                        uniqueCode = false;
+                    }
+                }).catch(() => {
+                    resolve("");
+                })
+            }).catch(() => {
+                resolve("");
+            })
+        }
+
+        resolve(newCode);
+    });
+}
+
 export const createCourse = (data) => {
+    let courseID = data.courseID;
     let courseName = data.courseName;
     let courseQuarter = data.courseQuarter;
     let courseCode = data.courseCode;
@@ -255,23 +288,43 @@ export const createCourse = (data) => {
     let courseInstructorID = data.courseInstructorID;
 
     return new Promise((resolve, reject) => {
-        firebase.firestore().collection('courses').add({
-            courseName: courseName,
-            courseQuarter: courseQuarter,
-            courseCode: courseCode,
-            courseCategories: courseCategories,
-            courseInstructorID: courseInstructorID,
-            courseActivitySessionID: '',
-            courseActivityPollID: '',
-            courseActivityPollLive: false,
-            courseActivityPollDisplay: false,
-            students: []
-        }).then(course => {
-            resolve(course.id);
-        }).catch(err => {
-            console.log(err);
-        });
-    })
+        if (courseID == '') {
+            firebase.firestore().collection('courses').add({
+                courseName: courseName,
+                courseQuarter: courseQuarter,
+                courseCode: courseCode,
+                courseCategories: courseCategories,
+                courseInstructorID: courseInstructorID,
+                courseActivitySessionID: '',
+                courseActivityPollID: '',
+                courseActivityPollLive: false,
+                courseActivityPollDisplay: false,
+                students: []
+            }).then(course => {
+                resolve(course.id);
+            }).catch(err => {
+                console.log(err);
+            });
+        } else {
+            firebase.firestore().collection('courses').doc(courseID).update({
+                courseName: courseName,
+                courseQuarter: courseQuarter,
+                courseCode: courseCode,
+                courseCategories: courseCategories,
+                courseInstructorID: courseInstructorID,
+                courseActivitySessionID: '',
+                courseActivityPollID: '',
+                courseActivityPollLive: false,
+                courseActivityPollDisplay: false,
+            }).then(course => {
+                resolve(course.id);
+            }).catch(err => {
+                console.log(err);
+            });
+        }
+
+        resolve('');
+    });
 };
 
 export const fetchCourseStudents = (data) => {
