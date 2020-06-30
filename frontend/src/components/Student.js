@@ -8,6 +8,7 @@ import withWidth from "@material-ui/core/withWidth/withWidth";
 import StudentTopBar from './StudentTopBar';
 import StudentMenu from './StudentMenu';
 import StudentPolls from "./StudentPolls";
+import Slides from "./Slides";
 
 const styles = theme => ({
     appBarSpacer: theme.mixins.toolbar,
@@ -70,6 +71,15 @@ class Student extends Component {
                     path="/student/:courseID/:pollID"
                     render={() =>
                         <StudentPolls
+                            userMenuOpen={this.state.userMenuOpen}
+                            userMenuOpenCtl={(open) => {this.setState({userMenuOpen: open})}}
+                        />
+                    }
+                />
+                <Route
+                    path="/student/:courseID"
+                    render={() =>
+                        <Slides
                             userMenuOpen={this.state.userMenuOpen}
                             userMenuOpenCtl={(open) => {this.setState({userMenuOpen: open})}}
                         />

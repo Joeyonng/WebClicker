@@ -1,0 +1,124 @@
+.slideshow-container {
+  max-width: 1000px;
+  position: relative;
+  margin: auto;
+  opacity: 1;
+	
+}
+
+.image-slide {
+	height: 100%;
+	width: 100%;
+	 opacity: 1;
+}	
+.slide-arrow {
+	cursor: pointer;
+  position: absolute;
+  top: 50%;
+  width: auto;
+  padding: 16px;
+  margin-top: -22px;
+  color: black;
+  font-weight: bold;
+  font-size: 18px;
+  transition: 0.6s ease;
+  border-radius: 0 3px 3px 0;
+  user-select: none;
+}
+
+.slideNum {
+	font-size: 1rem;
+    font-family: "Roboto", "Helvetica", "Arial", sans-serif;
+    font-weight: 400;
+    line-height: 1.5;
+  text-align: center;
+  margin: auto;
+  width: auto;
+  padding: 10px;
+}
+
+.slide-arrow.right {
+	 right: 0;
+  border-radius: 3px 0 0 3px;
+}
+
+.slide-arrow.left {
+	left: 0;
+}
+.slide-arrow.left:hover, .slide-arrow.right:hover {
+  background-color: #f1f1f1;
+  color: black;
+}
+
+.twoButton button {
+	width: 50%;
+	font-size: 1rem;
+    font-family: "Roboto", "Helvetica", "Arial", sans-serif;
+    font-weight: 400;
+    line-height: 1.5;
+  background-color: white;
+  color: black;
+  padding: 14px 28px;
+  font-size: 16px;
+  cursor: pointer;
+  outline:none;
+  border: 2px solid black;
+  border-color: #f1f1f1;
+  float: left; /* Float the buttons side by side */
+}
+
+.twoButton:after {
+  content: "";
+  clear: both;
+  display: table;
+}
+
+.twoButton button:not(:last-child) {
+  border-right: none; 
+}
+
+.twoButton button:hover {
+  background-color: #f1f1f1;
+  color: black;
+}
+
+.show_button {
+	 
+	width: 100%;
+	font-size: 1rem;
+    font-family: "Roboto", "Helvetica", "Arial", sans-serif;
+    font-weight: 400;
+    line-height: 1.5;
+  background-color: white;
+  color: black;
+  padding: 14px 28px;
+  font-size: 16px;
+  cursor: pointer;
+  outline:none;
+  border: 2px solid black;
+  border-color: #f1f1f1;
+}
+.show_hide_button:hover {
+  background-color: #f1f1f1;
+  color: black;
+}
+
+.imageCopied{
+	  position: absolute;
+	  left: 50%;
+	  top: 50%;
+	  transform: translate(-50%, -50%);
+		width: auto;
+	  padding: 16px;
+	  font-size: 2rem;
+    font-family: "Roboto", "Helvetica", "Arial", sans-serif;
+    font-weight: 400;
+    line-height: 1.5;
+	background-color: white;
+	color: black;
+	padding: 14px 28px;
+		display: none;	
+		border: 2px solid black;
+  border-color: red;
+}
+
