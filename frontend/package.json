@@ -34,7 +34,7 @@
     "@material-ui/lab": "^4.0.0-alpha.46",
     "@material-ui/pickers": "^3.2.10",
     "@material-ui/styles": "^4.9.6",
-    "axios": "^0.19.2",
+    "axios": "^0.21.1",
     "chart.js": "^2.8.0",
     "color": "^3.1.0",
     "downloadjs": "^1.4.7",
